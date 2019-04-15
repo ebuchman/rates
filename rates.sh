@@ -2,22 +2,22 @@
 set -eu
 
 DATE=$1 # 2017-01-31
-#AMT=$2 
 
+echo "DATE $1"
 echo "---------------------------------------"
-CAD_BTC=$(curl -s https://api.cbix.ca/v1/history | jq .data | jq -c ".[] | select(.date | contains(\"$DATE\"))" | jq .close)
+CAD_BTC=$(curl -s https://api.cbix.ca/v1/history | jq .data | jq -c ".[] | select(.date | contains(\"$DATE\"))" | jq -r .close)
 echo "FROM api.cbix.ca:"
 echo "CAD/BTC = $CAD_BTC"
 
 
-CAD_USD=$(curl -s http://data.fixer.io/api/"$DATE"?access_key=046901b2eaa97f7cd2ac4f6b68863f63 | jq .rates.CAD)
+echo "---------------------------------------"
 USD_BTC=$(curl -s "http://api.coindesk.com/v1/bpi/historical/close.json?start=$DATE&end=$DATE" | jq .bpi[\"${DATE}\"])
 
-CAD_BTC=$( echo $CAD_USD*$USD_BTC | bc )
+echo "FROM api.coindesk.com"
+echo "USD/BTC = $USD_BTC"
+
 
 echo "---------------------------------------"
-echo "FROM api.coindesk.com AND data.fixer.io"
+CAD_USD=$(curl -s "https://www.bankofcanada.ca/valet/observations/FXUSDCAD/json?start_date=$DATE&end_date=$DATE" |  jq .observations[0].FXUSDCAD.v )
+echo "FROM bankofcanada.ca"
 echo "CAD/USD = $CAD_USD"
-echo "USD/BTC = $USD_BTC"
-echo "CAD/BTC = $CAD_BTC"
-#echo "${AMT} CAD = $( echo $AMT/$CAD_BTC | bc -l) BTC"
